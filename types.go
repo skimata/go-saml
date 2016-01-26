@@ -175,6 +175,7 @@ type AssertionConsumerService struct {
 	Index    string `xml:"index,attr"`
 }
 
+//Signature could be under Assertion or Response
 type Response struct {
 	XMLName      xml.Name
 	SAMLP        string `xml:"xmlns:samlp,attr"`
@@ -194,6 +195,7 @@ type Response struct {
 	originalString string
 }
 
+//Signature could be under Assertion or Response
 type Assertion struct {
 	XMLName            xml.Name
 	ID                 string `xml:"ID,attr"`
@@ -206,6 +208,7 @@ type Assertion struct {
 	Subject            Subject
 	Conditions         Conditions
 	AttributeStatement AttributeStatement
+	Signature          Signature `xml:"Signature"`
 }
 
 type Conditions struct {

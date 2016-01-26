@@ -99,7 +99,10 @@ func GetAuthnRequestURL(baseURL string, b64XML string, state string) (string, er
 
 	q := u.Query()
 	q.Add("SAMLRequest", b64XML)
-	q.Add("RelayState", state)
+	//RelayState is optional
+	if state != "" {
+		q.Add("RelayState", state)
+	}
 	u.RawQuery = q.Encode()
 	return u.String(), nil
 }
