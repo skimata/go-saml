@@ -47,3 +47,21 @@ func TestGetUnsignedRequest(t *testing.T) {
 	assert.NoError(err)
 	assert.NotEmpty(authnRequest)
 }
+
+func TestGetUnsignedRequestWithPubKeyPem(t *testing.T) {
+	assert := assert.New(t)
+	sp := ServiceProviderSettings{
+		IDPSSOURL:                   "http://www.onelogin.net",
+		IDPSSODescriptorURL:         "http://www.onelogin.net",
+		IDPPublicCertPath:           "./pubkey.pem",
+		AssertionConsumerServiceURL: "http://localhost:8000/auth/saml/name",
+		SPSignRequest:               false,
+	}
+	err := sp.Init()
+	assert.NoError(err)
+
+	// Construct an AuthnRequest
+	authnRequest := sp.GetAuthnRequest()
+	assert.NoError(err)
+	assert.NotEmpty(authnRequest)
+}

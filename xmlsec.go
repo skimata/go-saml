@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	xmlResponseID = "urn:oasis:names:tc:SAML:2.0:protocol:Response"
-	xmlRequestID  = "urn:oasis:names:tc:SAML:2.0:protocol:AuthnRequest"
+	xmlResponseID    = "urn:oasis:names:tc:SAML:2.0:protocol:Response"
+	xmlRequestID     = "urn:oasis:names:tc:SAML:2.0:protocol:AuthnRequest"
+	xmlsecVerifyFlag = "--pubkey-cert-pem"
 )
 
 // SignRequest sign a SAML 2.0 AuthnRequest
@@ -70,6 +71,19 @@ func VerifyResponseSignature(xml string, publicCertPath string) error {
 	return verify(xml, publicCertPath, xmlResponseID)
 }
 
+func VerifyResponseSignatureWithSettings(xml string, s *ServiceProviderSettings) error {
+	nodeNsAndName := xmlResponseID
+	verifyFlag := xmlsecVerifyFlag
+	if s.XmlResponseIdNameSpaceAndNode != "" {
+		nodeNsAndName = s.XmlResponseIdNameSpaceAndNode
+	}
+	if s.XmlSecVerifyFlag != "" {
+		verifyFlag = s.XmlSecVerifyFlag
+	}
+
+	return verifyWith(xml, s.IDPPublicCertPath, nodeNsAndName, verifyFlag)
+}
+
 // VerifyRequestSignature verify signature of a SAML 2.0 AuthnRequest document
 // `publicCertPath` must be a path on the filesystem, xmlsec1 is run out of process
 // through `exec`
@@ -77,7 +91,7 @@ func VerifyRequestSignature(xml string, publicCertPath string) error {
 	return verify(xml, publicCertPath, xmlRequestID)
 }
 
-func verify(xml string, publicCertPath string, id string) error {
+func verifyWith(xml string, publicCertPath string, id string, verifyFlag string) error {
 	//Write saml to
 	samlXmlsecInput, err := ioutil.TempFile(os.TempDir(), "tmpgs")
 	if err != nil {
@@ -89,11 +103,15 @@ func verify(xml string, publicCertPath string, id string) error {
 	defer deleteTempFile(samlXmlsecInput.Name())
 
 	//fmt.Println("xmlsec1", "--verify", "--pubkey-cert-pem", publicCertPath, "--id-attr:ID", id, samlXmlsecInput.Name())
-	_, err = exec.Command("xmlsec1", "--verify", "--pubkey-cert-pem", publicCertPath, "--id-attr:ID", id, samlXmlsecInput.Name()).CombinedOutput()
+	_, err = exec.Command("xmlsec1", "--verify", verifyFlag, publicCertPath, "--id-attr:ID", id, samlXmlsecInput.Name()).CombinedOutput()
 	if err != nil {
 		return errors.New("error verifing signature: " + err.Error())
 	}
 	return nil
+}
+
+func verify(xml string, publicCertPath string, id string) error {
+	return verifyWith(xml, publicCertPath, id, xmlsecVerifyFlag)
 }
 
 // deleteTempFile remove a file and ignore error

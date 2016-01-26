@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/RobotsAndPencils/go-saml/util"
+	"github.com/skimata/go-saml/util"
 )
 
 func ParseCompressedEncodedResponse(b64ResponseXML string) (*Response, error) {
@@ -59,11 +59,12 @@ func (r *Response) Validate(s *ServiceProviderSettings) error {
 		return errors.New("no Assertions")
 	}
 
-	if len(r.Signature.SignatureValue.Value) == 0 {
+	//Signature could be under Assertion node
+	if len(r.Signature.SignatureValue.Value) == 0 && len(r.Assertion.Signature.SignatureValue.Value) == 0 {
 		return errors.New("no signature")
 	}
 
-	if r.Destination != s.AssertionConsumerServiceURL {
+	if r.Destination != "" && r.Destination != s.AssertionConsumerServiceURL {
 		return errors.New("destination mismath expected: " + s.AssertionConsumerServiceURL + " not " + r.Destination)
 	}
 
@@ -75,7 +76,7 @@ func (r *Response) Validate(s *ServiceProviderSettings) error {
 		return errors.New("subject recipient mismatch, expected: " + s.AssertionConsumerServiceURL + " not " + r.Assertion.Subject.SubjectConfirmation.SubjectConfirmationData.Recipient)
 	}
 
-	err := VerifyResponseSignature(r.originalString, s.IDPPublicCertPath)
+	err := VerifyResponseSignatureWithSettings(r.originalString, s)
 	if err != nil {
 		return err
 	}
