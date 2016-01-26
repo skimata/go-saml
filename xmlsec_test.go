@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"testing"
 
-	"github.com/RobotsAndPencils/go-saml/util"
+	"github.com/skimata/go-saml/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -67,9 +67,9 @@ func TestResponseSignatureVerificationWithPubKeyPem(t *testing.T) {
 	assert.NoError(err)
 	assert.NotEmpty(signedXml)
 
-	sp := ServiceProviderSettings  {
+	sp := ServiceProviderSettings{
 		IDPPublicCertPath: "./pubkey.pem",
-		XmlSecVerifyFlag : "--pubkey-pem",
+		XmlSecVerifyFlag:  "--pubkey-pem",
 	}
 
 	err = VerifyResponseSignatureWithSettings(signedXml, &sp)
