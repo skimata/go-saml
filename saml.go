@@ -16,61 +16,54 @@ type ServiceProviderSettings struct {
 	XmlResponseIdNameSpaceAndNode string
 	XmlSecVerifyFlag              string
 
-	hasInit       bool
+	IsInitialized bool
 	publicCert    string
 	privateKey    string
-	iDPPublicCert string
+	idpPublicCert string
 }
 
 type IdentityProviderSettings struct {
 }
 
-func (s *ServiceProviderSettings) Init() (err error) {
-	if s.hasInit {
+func (s *ServiceProviderSettings) Init() error {
+	var err error
+
+	if s.IsInitialized {
 		return nil
 	}
-	s.hasInit = true
 
 	if s.SPSignRequest {
 		s.publicCert, err = util.LoadCertificate(s.PublicCertPath)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		s.privateKey, err = util.LoadCertificate(s.PrivateKeyPath)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
 
 	//support for a IDP cert or a PEM encoded public key
 	if s.IDPPublicCertPath != "" {
-		s.iDPPublicCert, err = util.LoadCertificate(s.IDPPublicCertPath)
+		s.idpPublicCert, err = util.LoadCertificate(s.IDPPublicCertPath)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
 
+	s.IsInitialized = true
 	return nil
 }
 
 func (s *ServiceProviderSettings) PublicCert() string {
-	if !s.hasInit {
-		panic("Must call ServiceProviderSettings.Init() first")
-	}
 	return s.publicCert
 }
 
 func (s *ServiceProviderSettings) PrivateKey() string {
-	if !s.hasInit {
-		panic("Must call ServiceProviderSettings.Init() first")
-	}
 	return s.privateKey
 }
 
 func (s *ServiceProviderSettings) IDPPublicCert() string {
-	if !s.hasInit {
-		panic("Must call ServiceProviderSettings.Init() first")
-	}
-	return s.iDPPublicCert
+	return s.idpPublicCert
 }
